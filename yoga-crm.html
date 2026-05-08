@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZenFlow Studio – CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sage:#7a9e7e;--sage-light:#a8c5ac;--sage-dark:#4d7352;
+  --cream:#f7f3ee;--warm:#ede8e0;--paper:#faf8f5;
+  --ink:#1a1a18;--ink2:#3d3d38;--muted:#8a8a82;
+  --border:#e2ddd5;--border2:#cec8be;
+  --gold:#c9a96e;--rose:#c97e7e;--sky:#7e9fc9;
+  --shadow:0 2px 16px rgba(26,26,24,.07);
+  --shadow-lg:0 8px 40px rgba(26,26,24,.12);
+  --r:10px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;display:flex}
+
+/* SIDEBAR */
+.sidebar{width:220px;min-height:100vh;background:var(--ink);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:100}
+.sidebar-logo{padding:28px 20px 24px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sidebar-logo .lotus{font-size:22px;margin-bottom:4px}
+.sidebar-logo h1{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:#fff;letter-spacing:.5px;line-height:1.2}
+.sidebar-logo span{font-size:10px;color:var(--sage-light);letter-spacing:2px;text-transform:uppercase}
+.nav{padding:16px 0;flex:1}
+.nav-section{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.3);padding:16px 20px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;font-size:13px;color:rgba(255,255,255,.6);cursor:pointer;transition:all .15s;border-left:3px solid transparent}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,.05)}
+.nav-item.active{color:#fff;background:rgba(122,158,126,.15);border-left-color:var(--sage)}
+.nav-item .icon{font-size:15px;width:18px;text-align:center}
+.sidebar-bottom{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08)}
+.studio-badge{background:rgba(122,158,126,.2);border:1px solid rgba(122,158,126,.3);border-radius:6px;padding:10px 12px}
+.studio-badge .name{font-size:12px;font-weight:500;color:#fff}
+.studio-badge .sub{font-size:10px;color:var(--sage-light)}
+
+/* MAIN */
+.main{margin-left:220px;flex:1;min-height:100vh}
+.topbar{background:var(--paper);border-bottom:1px solid var(--border);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--ink)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-date{font-size:12px;color:var(--muted)}
+.avatar{width:32px;height:32px;background:var(--sage);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff}
+.page{display:none;padding:28px;animation:fadeIn .2s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.kpi{background:var(--paper);border:1px solid var(--border);border-radius:var(--r);padding:20px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--sage)}
+.kpi.gold::before{background:var(--gold)}
+.kpi.rose::before{background:var(--rose)}
+.kpi.sky::before{background:var(--sky)}
+.kpi-label{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.kpi-value{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--ink);line-height:1}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:6px}
+.kpi-trend{font-size:11px;font-weight:500}
+.kpi-trend.up{color:var(--sage-dark)}
+.kpi-trend.down{color:var(--rose)}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px}
+.card{background:var(--paper);border:1px solid var(--border);border-radius:var(--r);padding:20px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-title{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;color:var(--ink)}
+.card-action{font-size:12px;color:var(--sage);cursor:pointer;font-weight:500}
+.card-action:hover{text-decoration:underline}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);text-align:left;padding:0 0 10px;font-weight:500;border-bottom:1px solid var(--border)}
+.tbl td{padding:11px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--ink2);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--cream)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;letter-spacing:.5px;padding:3px 9px;border-radius:20px}
+.badge-green{background:#e8f4e9;color:#2e7d32}
+.badge-orange{background:#fff3e0;color:#e65100}
+.badge-red{background:#fdecea;color:#c62828}
+.badge-blue{background:#e3f2fd;color:#1565c0}
+.badge-purple{background:#f3e5f5;color:#6a1b9a}
+.badge-gray{background:#f5f5f5;color:#616161}
+
+/* AVATAR CIRCLE */
+.member-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .15s}
+.btn-sage{background:var(--sage);color:#fff}
+.btn-sage:hover{background:var(--sage-dark)}
+.btn-outline{background:transparent;border:1.5px solid var(--border2);color:var(--ink2)}
+.btn-outline:hover{border-color:var(--sage);color:var(--sage)}
+.btn-sm{padding:5px 12px;font-size:12px}
+
+/* KURS CARDS */
+.kurs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.kurs-card{background:var(--paper);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:box-shadow .2s}
+.kurs-card:hover{box-shadow:var(--shadow-lg)}
+.kurs-banner{height:6px}
+.kurs-body{padding:16px}
+.kurs-time{font-size:11px;color:var(--muted);margin-bottom:4px}
+.kurs-name{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;margin-bottom:4px}
+.kurs-teacher{font-size:12px;color:var(--muted);margin-bottom:10px}
+.kurs-footer{display:flex;align-items:center;justify-content:space-between}
+.kurs-spots{font-size:11px;color:var(--muted)}
+.kurs-bar{height:4px;background:var(--border);border-radius:2px;margin:6px 0 10px;overflow:hidden}
+.kurs-bar-fill{height:100%;border-radius:2px;transition:width .5s}
+
+/* MITGLIEDER */
+.search-bar{background:var(--paper);border:1.5px solid var(--border);border-radius:6px;padding:9px 14px;font-size:13px;width:280px;outline:none;font-family:'DM Sans',sans-serif;color:var(--ink)}
+.search-bar:focus{border-color:var(--sage)}
+.filter-row{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+
+/* TIMELINE / AKTIVITÄTEN */
+.activity-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.activity-item:last-child{border-bottom:none}
+.activity-dot{width:8px;height:8px;border-radius:50%;background:var(--sage);flex-shrink:0;margin-top:5px}
+.activity-dot.gold{background:var(--gold)}
+.activity-dot.rose{background:var(--rose)}
+.activity-text{font-size:13px;color:var(--ink2);line-height:1.4}
+.activity-time{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* STUNDENPLAN */
+.stundenplan{display:grid;grid-template-columns:60px repeat(7,1fr);gap:2px;font-size:12px}
+.sp-header{background:var(--warm);padding:8px 6px;text-align:center;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-radius:4px}
+.sp-time{padding:8px 6px;text-align:right;color:var(--muted);font-size:11px;display:flex;align-items:center;justify-content:flex-end}
+.sp-cell{min-height:48px;border-radius:4px;background:var(--warm);cursor:pointer}
+.sp-kurs{background:var(--sage);color:#fff;border-radius:4px;padding:5px 7px;font-size:11px;line-height:1.3;height:100%;cursor:pointer;transition:opacity .15s}
+.sp-kurs:hover{opacity:.85}
+.sp-kurs.gold{background:var(--gold)}
+.sp-kurs.sky{background:var(--sky)}
+.sp-kurs.rose{background:var(--rose)}
+.sp-kurs .kn{font-weight:600}
+.sp-kurs .kt{opacity:.8;font-size:10px}
+
+/* PAKETE */
+.paket-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.paket{background:var(--paper);border:2px solid var(--border);border-radius:12px;padding:24px;position:relative;transition:border-color .2s}
+.paket:hover{border-color:var(--sage)}
+.paket.featured{border-color:var(--sage);background:linear-gradient(135deg,rgba(122,158,126,.05),var(--paper))}
+.paket-popular{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--sage);color:#fff;font-size:10px;font-weight:700;letter-spacing:1px;padding:3px 12px;border-radius:20px;text-transform:uppercase}
+.paket-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;margin-bottom:4px}
+.paket-price{font-size:28px;font-weight:600;color:var(--sage-dark);margin-bottom:2px}
+.paket-period{font-size:12px;color:var(--muted);margin-bottom:16px}
+.paket-feature{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2);padding:5px 0}
+.paket-feature::before{content:'✓';color:var(--sage);font-weight:700;font-size:13px}
+
+/* EMAIL AUTOMATIONEN */
+.automation-item{background:var(--paper);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;display:flex;align-items:center;gap:16px;margin-bottom:10px;transition:box-shadow .15s}
+.automation-item:hover{box-shadow:var(--shadow)}
+.auto-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.auto-info{flex:1}
+.auto-name{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:2px}
+.auto-desc{font-size:12px;color:var(--muted)}
+.auto-stats{text-align:right;font-size:12px;color:var(--muted)}
+.auto-stats strong{display:block;font-size:14px;font-weight:600;color:var(--ink2)}
+.toggle{width:40px;height:22px;background:var(--sage);border-radius:11px;position:relative;cursor:pointer;flex-shrink:0}
+.toggle::after{content:'';width:18px;height:18px;background:#fff;border-radius:50%;position:absolute;top:2px;right:2px;transition:right .2s}
+.toggle.off{background:var(--border2)}
+.toggle.off::after{right:auto;left:2px}
+
+/* UMSATZ */
+.chart-bar-wrap{display:flex;align-items:flex-end;gap:8px;height:120px;padding:0 4px}
+.chart-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.chart-bar{width:100%;border-radius:4px 4px 0 0;background:var(--sage);transition:height .5s;cursor:pointer;min-height:4px;position:relative}
+.chart-bar:hover{opacity:.8}
+.chart-bar.gold{background:var(--gold)}
+.chart-label{font-size:10px;color:var(--muted)}
+.chart-val{font-size:10px;font-weight:600;color:var(--ink2)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(26,26,24,.5);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--paper);border-radius:14px;padding:28px;width:480px;max-width:95vw;box-shadow:var(--shadow-lg);animation:modalIn .2s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;margin-bottom:20px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;font-weight:500}
+.field input,.field select,.field textarea{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;background:#fff;color:var(--ink)}
+.field input:focus,.field select:focus{border-color:var(--sage)}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+
+/* PROFIL */
+.member-profile{display:grid;grid-template-columns:280px 1fr;gap:20px}
+.profile-card{background:var(--paper);border:1px solid var(--border);border-radius:var(--r);padding:24px;text-align:center}
+.profile-avatar{width:72px;height:72px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;color:#fff}
+.profile-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;margin-bottom:2px}
+.profile-email{font-size:12px;color:var(--muted);margin-bottom:16px}
+.profile-stat{text-align:center;padding:10px}
+.profile-stat-value{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300}
+.profile-stat-label{font-size:11px;color:var(--muted)}
+
+/* NOTIFICATION */
+.notif{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;z-index:300;display:none;animation:slideUp .2s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* MISC */
+.divider{height:1px;background:var(--border);margin:16px 0}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;margin-bottom:4px}
+.section-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+.empty{text-align:center;padding:40px;color:var(--muted);font-size:13px}
+.tag{display:inline-block;background:var(--warm);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--ink2);margin:2px}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="lotus">🪷</div>
+    <h1>ZenFlow Studio</h1>
+    <span>CRM System</span>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">Übersicht</div>
+    <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">◈</span> Dashboard</div>
+    <div class="nav-section">Studio</div>
+    <div class="nav-item" onclick="showPage('stundenplan')"><span class="icon">📅</span> Stundenplan</div>
+    <div class="nav-item" onclick="showPage('kurse')"><span class="icon">🧘</span> Kurse & Klassen</div>
+    <div class="nav-section">Mitglieder</div>
+    <div class="nav-item" onclick="showPage('mitglieder')"><span class="icon">👥</span> Mitglieder</div>
+    <div class="nav-item" onclick="showPage('pakete')"><span class="icon">✦</span> Mitgliedschaften</div>
+    <div class="nav-section">Marketing</div>
+    <div class="nav-item" onclick="showPage('automationen')"><span class="icon">⚡</span> E-Mail Automationen</div>
+    <div class="nav-section">Finanzen</div>
+    <div class="nav-item" onclick="showPage('umsatz')"><span class="icon">◎</span> Umsatz & Berichte</div>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="studio-badge">
+      <div class="name">🪷 ZenFlow München</div>
+      <div class="sub">Pro Plan · Demo</div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="page-title">Dashboard</div>
+    <div class="topbar-right">
+      <span class="topbar-date">Freitag, 8. Mai 2026</span>
+      <div class="avatar">SA</div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Aktive Mitglieder</div>
+        <div class="kpi-value">248</div>
+        <div class="kpi-sub"><span class="kpi-trend up">↑ +12</span> diesen Monat</div>
+      </div>
+      <div class="kpi gold">
+        <div class="kpi-label">Umsatz Mai</div>
+        <div class="kpi-value">8.640 €</div>
+        <div class="kpi-sub"><span class="kpi-trend up">↑ +8%</span> vs. April</div>
+      </div>
+      <div class="kpi rose">
+        <div class="kpi-label">Kurse heute</div>
+        <div class="kpi-value">7</div>
+        <div class="kpi-sub">3 noch ausstehend</div>
+      </div>
+      <div class="kpi sky">
+        <div class="kpi-label">Auslastung</div>
+        <div class="kpi-value">84%</div>
+        <div class="kpi-sub"><span class="kpi-trend up">↑ +5%</span> vs. Vorwoche</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Heutige Kurse -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Heutige Kurse</div>
+          <span class="card-action" onclick="showPage('stundenplan')">Stundenplan →</span>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>Uhrzeit</th><th>Kurs</th><th>Trainer</th><th>Plätze</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>07:30</td><td><strong>Morning Flow</strong></td><td>Sarah M.</td><td><span class="badge badge-green">✓ Voll</span></td><td><span class="badge badge-gray">Läuft</span></td></tr>
+            <tr><td>09:00</td><td><strong>Yin Yoga</strong></td><td>Lisa K.</td><td><span class="badge badge-green">3 frei</span></td><td><span class="badge badge-gray">Läuft</span></td></tr>
+            <tr><td>11:00</td><td><strong>Power Vinyasa</strong></td><td>Sarah M.</td><td><span class="badge badge-orange">5 frei</span></td><td><span class="badge badge-blue">Bald</span></td></tr>
+            <tr><td>17:30</td><td><strong>Restorative</strong></td><td>Mia H.</td><td><span class="badge badge-green">8 frei</span></td><td><span class="badge badge-blue">Bald</span></td></tr>
+            <tr><td>18:45</td><td><strong>Ashtanga</strong></td><td>Tom R.</td><td><span class="badge badge-orange">2 frei</span></td><td><span class="badge badge-blue">Bald</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Aktivitäten -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Letzte Aktivitäten</div>
+          <span class="card-action">Alle →</span>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot gold"></div>
+          <div><div class="activity-text"><strong>Laura Bauer</strong> hat Premium-Abo abgeschlossen</div><div class="activity-time">vor 12 Minuten</div></div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot"></div>
+          <div><div class="activity-text"><strong>3 neue Buchungen</strong> für Power Vinyasa (11:00)</div><div class="activity-time">vor 28 Minuten</div></div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot rose"></div>
+          <div><div class="activity-text"><strong>Max Müller</strong> hat Kurs storniert – Yin Yoga</div><div class="activity-time">vor 1 Stunde</div></div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot"></div>
+          <div><div class="activity-text">Automatische E-Mail gesendet: <strong>Probe-Erinnerung</strong> (24 Empfänger)</div><div class="activity-time">vor 2 Stunden</div></div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot gold"></div>
+          <div><div class="activity-text"><strong>Julia Schneider</strong> – Geburtstagsmail automatisch gesendet 🎂</div><div class="activity-time">heute, 08:00</div></div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot"></div>
+          <div><div class="activity-text"><strong>Lena Braun</strong> neues Mitglied (Empfehlung von Anna K.)</div><div class="activity-time">gestern, 17:30</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <!-- Ablaufende Pakete -->
+      <div class="card">
+        <div class="card-header"><div class="card-title">Pakete laufen ab</div><span class="badge badge-orange">4 diese Woche</span></div>
+        <div class="activity-item">
+          <div class="activity-dot rose"></div>
+          <div><div class="activity-text"><strong>Anna Klein</strong> – 10er-Karte</div><div class="activity-time">läuft morgen ab · 1 Einheit übrig</div></div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot rose"></div>
+          <div><div class="activity-text"><strong>Peter Wolf</strong> – Monatsabo</div><div class="activity-time">läuft in 2 Tagen ab</div></div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot gold"></div>
+          <div><div class="activity-text"><strong>Nina Vogel</strong> – 5er-Karte</div><div class="activity-time">läuft in 5 Tagen ab · 0 Einheiten</div></div>
+        </div>
+        <div style="margin-top:12px"><button class="btn btn-sm btn-sage" onclick="notify('Erinnerungs-E-Mails gesendet an 4 Mitglieder ✓')">Erinnerungen senden</button></div>
+      </div>
+
+      <!-- Wartelisten -->
+      <div class="card">
+        <div class="card-header"><div class="card-title">Wartelisten</div><span class="badge badge-red">2 volle Kurse</span></div>
+        <div class="activity-item">
+          <div class="activity-dot rose"></div>
+          <div><div class="activity-text"><strong>Morning Flow</strong> – Mo, Mi, Fr 07:30</div><div class="activity-time">8 Personen auf Warteliste</div></div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot rose"></div>
+          <div><div class="activity-text"><strong>Ashtanga Basics</strong> – Di, Do 18:45</div><div class="activity-time">3 Personen auf Warteliste</div></div>
+        </div>
+        <div style="margin-top:12px"><button class="btn btn-sm btn-outline" onclick="notify('Automatische Benachrichtigung aktiviert ✓')">Auto-Benachrichtigung</button></div>
+      </div>
+
+      <!-- Neue Mitglieder -->
+      <div class="card">
+        <div class="card-header"><div class="card-title">Neue Mitglieder</div><span class="badge badge-green">12 diesen Monat</span></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="member-avatar" style="background:var(--sage);font-size:12px">LB</div>
+            <div><div style="font-size:13px;font-weight:500">Lena Braun</div><div style="font-size:11px;color:var(--muted)">Premium · vor 1 Tag</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="member-avatar" style="background:var(--gold);font-size:12px">TW</div>
+            <div><div style="font-size:13px;font-weight:500">Tobias Weber</div><div style="font-size:11px;color:var(--muted)">Basis · vor 2 Tagen</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="member-avatar" style="background:var(--sky);font-size:12px">KH</div>
+            <div><div style="font-size:13px;font-weight:500">Klara Hoffmann</div><div style="font-size:11px;color:var(--muted)">10er-Karte · vor 3 Tagen</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STUNDENPLAN -->
+  <div class="page" id="page-stundenplan">
+    <div class="section-title">Wochenplan</div>
+    <div class="section-sub">KW 19 · 5. – 11. Mai 2026</div>
+    <div class="card" style="overflow-x:auto">
+      <div class="stundenplan">
+        <div></div>
+        <div class="sp-header">Mo</div><div class="sp-header">Di</div><div class="sp-header">Mi</div>
+        <div class="sp-header">Do</div><div class="sp-header">Fr</div><div class="sp-header">Sa</div><div class="sp-header">So</div>
+
+        <!-- 07:30 -->
+        <div class="sp-time">07:30</div>
+        <div class="sp-kurs" onclick="notify('Morning Flow · Sarah M. · 12/12 Plätze')"><div class="kn">Morning Flow</div><div class="kt">Sarah M. · voll</div></div>
+        <div class="sp-cell"></div>
+        <div class="sp-kurs" onclick="notify('Morning Flow · Sarah M. · 11/12 Plätze')"><div class="kn">Morning Flow</div><div class="kt">Sarah M.</div></div>
+        <div class="sp-cell"></div>
+        <div class="sp-kurs" onclick="notify('Morning Flow · Sarah M. · 12/12 Plätze')"><div class="kn">Morning Flow</div><div class="kt">Sarah M. · voll</div></div>
+        <div class="sp-kurs gold" onclick="notify('Sunrise Flow · Lisa K. · 8/15 Plätze')"><div class="kn">Sunrise Flow</div><div class="kt">Lisa K.</div></div>
+        <div class="sp-cell"></div>
+
+        <!-- 09:00 -->
+        <div class="sp-time">09:00</div>
+        <div class="sp-kurs sky" onclick="notify('Yin Yoga · Lisa K. · 9/12 Plätze')"><div class="kn">Yin Yoga</div><div class="kt">Lisa K.</div></div>
+        <div class="sp-kurs sky" onclick="notify('Meditation · Mia H. · 6/10 Plätze')"><div class="kn">Meditation</div><div class="kt">Mia H.</div></div>
+        <div class="sp-kurs sky" onclick="notify('Yin Yoga · Lisa K. · 10/12 Plätze')"><div class="kn">Yin Yoga</div><div class="kt">Lisa K.</div></div>
+        <div class="sp-cell"></div>
+        <div class="sp-kurs sky" onclick="notify('Yin Yoga · Lisa K. · 8/12 Plätze')"><div class="kn">Yin Yoga</div><div class="kt">Lisa K.</div></div>
+        <div class="sp-kurs" onclick="notify('Hatha Flow · Tom R. · 14/15 Plätze')"><div class="kn">Hatha Flow</div><div class="kt">Tom R.</div></div>
+        <div class="sp-kurs gold" onclick="notify('Family Yoga · Mia H. · 5/8 Plätze')"><div class="kn">Family Yoga</div><div class="kt">Mia H.</div></div>
+
+        <!-- 11:00 -->
+        <div class="sp-time">11:00</div>
+        <div class="sp-cell"></div>
+        <div class="sp-kurs rose" onclick="notify('Power Vinyasa · Sarah M. · 10/15 Plätze')"><div class="kn">Power Vinyasa</div><div class="kt">Sarah M.</div></div>
+        <div class="sp-cell"></div>
+        <div class="sp-kurs rose" onclick="notify('Power Vinyasa · Sarah M. · 13/15 Plätze')"><div class="kn">Power Vinyasa</div><div class="kt">Sarah M.</div></div>
+        <div class="sp-cell"></div>
+        <div class="sp-kurs gold" onclick="notify('Deep Stretch · Mia H. · 7/12 Plätze')"><div class="kn">Deep Stretch</div><div class="kt">Mia H.</div></div>
+        <div class="sp-cell"></div>
+
+        <!-- 17:30 -->
+        <div class="sp-time">17:30</div>
+        <div class="sp-kurs gold" onclick="notify('Restorative · Mia H. · 4/12 Plätze')"><div class="kn">Restorative</div><div class="kt">Mia H.</div></div>
+        <div class="sp-cell"></div>
+        <div class="sp-kurs gold" onclick="notify('Restorative · Mia H. · 8/12 Plätze')"><div class="kn">Restorative</div><div class="kt">Mia H.</div></div>
+        <div class="sp-cell"></div>
+        <div class="sp-kurs gold" onclick="notify('Restorative · Mia H. · 6/12 Plätze')"><div class="kn">Restorative</div><div class="kt">Mia H.</div></div>
+        <div class="sp-cell"></div>
+        <div class="sp-cell"></div>
+
+        <!-- 18:45 -->
+        <div class="sp-time">18:45</div>
+        <div class="sp-kurs rose" onclick="notify('Ashtanga · Tom R. · 15/15 · VOLL + 3 Warteliste')"><div class="kn">Ashtanga ★</div><div class="kt">Tom R. · voll</div></div>
+        <div class="sp-kurs" onclick="notify('Basics für Anfänger · Lisa K. · 8/10 Plätze')"><div class="kn">Yoga Basics</div><div class="kt">Lisa K.</div></div>
+        <div class="sp-kurs rose" onclick="notify('Ashtanga · Tom R. · 14/15 Plätze')"><div class="kn">Ashtanga</div><div class="kt">Tom R.</div></div>
+        <div class="sp-kurs" onclick="notify('Basics für Anfänger · Lisa K. · 9/10 Plätze')"><div class="kn">Yoga Basics</div><div class="kt">Lisa K.</div></div>
+        <div class="sp-kurs rose" onclick="notify('Ashtanga · Tom R. · 15/15 · VOLL')"><div class="kn">Ashtanga ★</div><div class="kt">Tom R. · voll</div></div>
+        <div class="sp-cell"></div>
+        <div class="sp-cell"></div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap;font-size:11px">
+        <span><span style="display:inline-block;width:10px;height:10px;background:var(--sage);border-radius:2px;margin-right:4px"></span>Flow / Vinyasa</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:var(--sky);border-radius:2px;margin-right:4px"></span>Yin / Meditation</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:var(--gold);border-radius:2px;margin-right:4px"></span>Restorative / Stretch</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:var(--rose);border-radius:2px;margin-right:4px"></span>Power / Ashtanga</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- KURSE -->
+  <div class="page" id="page-kurse">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div><div class="section-title">Kurse & Klassen</div><div class="section-sub">6 aktive Kurse · 248 Buchungen heute</div></div>
+      <button class="btn btn-sage" onclick="notify('Neuer Kurs erstellt ✓')">+ Kurs erstellen</button>
+    </div>
+    <div class="kurs-grid">
+      <div class="kurs-card">
+        <div class="kurs-banner" style="background:var(--sage)"></div>
+        <div class="kurs-body">
+          <div class="kurs-time">Mo · Mi · Fr · 07:30 Uhr</div>
+          <div class="kurs-name">Morning Flow</div>
+          <div class="kurs-teacher">🧘 Sarah Mayer</div>
+          <div class="kurs-bar"><div class="kurs-bar-fill" style="width:100%;background:var(--rose)"></div></div>
+          <div class="kurs-footer"><span class="kurs-spots">12/12 Plätze · <strong style="color:var(--rose)">Voll</strong></span><span class="badge badge-red">8 Warteliste</span></div>
+        </div>
+      </div>
+      <div class="kurs-card">
+        <div class="kurs-banner" style="background:var(--sky)"></div>
+        <div class="kurs-body">
+          <div class="kurs-time">Mo · Mi · Fr · 09:00 Uhr</div>
+          <div class="kurs-name">Yin Yoga</div>
+          <div class="kurs-teacher">🧘 Lisa Krause</div>
+          <div class="kurs-bar"><div class="kurs-bar-fill" style="width:75%;background:var(--sky)"></div></div>
+          <div class="kurs-footer"><span class="kurs-spots">9/12 Plätze frei</span><span class="badge badge-green">Offen</span></div>
+        </div>
+      </div>
+      <div class="kurs-card">
+        <div class="kurs-banner" style="background:var(--rose)"></div>
+        <div class="kurs-body">
+          <div class="kurs-time">Di · Do · 11:00 Uhr</div>
+          <div class="kurs-name">Power Vinyasa</div>
+          <div class="kurs-teacher">🧘 Sarah Mayer</div>
+          <div class="kurs-bar"><div class="kurs-bar-fill" style="width:87%;background:var(--rose)"></div></div>
+          <div class="kurs-footer"><span class="kurs-spots">13/15 Plätze</span><span class="badge badge-orange">Fast voll</span></div>
+        </div>
+      </div>
+      <div class="kurs-card">
+        <div class="kurs-banner" style="background:var(--gold)"></div>
+        <div class="kurs-body">
+          <div class="kurs-time">Mo · Mi · Fr · 17:30 Uhr</div>
+          <div class="kurs-name">Restorative Yoga</div>
+          <div class="kurs-teacher">🧘 Mia Hartmann</div>
+          <div class="kurs-bar"><div class="kurs-bar-fill" style="width:50%;background:var(--gold)"></div></div>
+          <div class="kurs-footer"><span class="kurs-spots">6/12 Plätze frei</span><span class="badge badge-green">Offen</span></div>
+        </div>
+      </div>
+      <div class="kurs-card">
+        <div class="kurs-banner" style="background:var(--rose)"></div>
+        <div class="kurs-body">
+          <div class="kurs-time">Mo · Mi · Fr · 18:45 Uhr</div>
+          <div class="kurs-name">Ashtanga</div>
+          <div class="kurs-teacher">🧘 Tom Richter</div>
+          <div class="kurs-bar"><div class="kurs-bar-fill" style="width:100%;background:var(--rose)"></div></div>
+          <div class="kurs-footer"><span class="kurs-spots">15/15 · <strong style="color:var(--rose)">Voll</strong></span><span class="badge badge-red">3 Warteliste</span></div>
+        </div>
+      </div>
+      <div class="kurs-card">
+        <div class="kurs-banner" style="background:var(--sky)"></div>
+        <div class="kurs-body">
+          <div class="kurs-time">Di · Do · 18:45 Uhr</div>
+          <div class="kurs-name">Yoga Basics</div>
+          <div class="kurs-teacher">🧘 Lisa Krause</div>
+          <div class="kurs-bar"><div class="kurs-bar-fill" style="width:80%;background:var(--sky)"></div></div>
+          <div class="kurs-footer"><span class="kurs-spots">8/10 Plätze</span><span class="badge badge-orange">Fast voll</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MITGLIEDER -->
+  <div class="page" id="page-mitglieder">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div><div class="section-title">Mitglieder</div><div class="section-sub">248 aktive Mitglieder</div></div>
+      <button class="btn btn-sage" onclick="openModal('modal-neues-mitglied')">+ Mitglied hinzufügen</button>
+    </div>
+    <div class="filter-row">
+      <input class="search-bar" placeholder="🔍  Mitglied suchen…">
+      <button class="btn btn-outline btn-sm">Alle</button>
+      <button class="btn btn-outline btn-sm">Premium</button>
+      <button class="btn btn-outline btn-sm">Basis</button>
+      <button class="btn btn-outline btn-sm">10er-Karte</button>
+    </div>
+    <div class="card" style="padding:0">
+      <table class="tbl" style="padding:0">
+        <thead style="padding:0 20px"><tr style="padding:0 20px">
+          <th style="padding-left:20px">Mitglied</th><th>Paket</th><th>Buchungen</th><th>Letzte Aktivität</th><th>Status</th><th style="padding-right:20px"></th>
+        </tr></thead>
+        <tbody id="member-list">
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PAKETE -->
+  <div class="page" id="page-pakete">
+    <div class="section-title">Mitgliedschaften & Pakete</div>
+    <div class="section-sub">3 aktive Pakete · 248 Mitglieder</div>
+    <div class="paket-grid" style="margin-bottom:28px">
+      <div class="paket">
+        <div class="paket-name">Basis</div>
+        <div class="paket-price">49 €</div>
+        <div class="paket-period">pro Monat · 87 Mitglieder</div>
+        <div class="paket-feature">4 Kurse pro Monat</div>
+        <div class="paket-feature">Online-Buchung</div>
+        <div class="paket-feature">App-Zugang</div>
+        <div style="margin-top:16px"><button class="btn btn-outline btn-sm" onclick="notify('Paket-Details geöffnet')">Details</button></div>
+      </div>
+      <div class="paket featured">
+        <div class="paket-popular">Beliebtestes</div>
+        <div class="paket-name">Premium</div>
+        <div class="paket-price">89 €</div>
+        <div class="paket-period">pro Monat · 124 Mitglieder</div>
+        <div class="paket-feature">Unlimited Kurse</div>
+        <div class="paket-feature">Priorität bei Buchung</div>
+        <div class="paket-feature">1 Gäste-Pass/Monat</div>
+        <div class="paket-feature">Workshops inklusive</div>
+        <div style="margin-top:16px"><button class="btn btn-sage btn-sm" onclick="notify('Paket-Details geöffnet')">Details</button></div>
+      </div>
+      <div class="paket">
+        <div class="paket-name">10er-Karte</div>
+        <div class="paket-price">120 €</div>
+        <div class="paket-period">einmalig · 37 Mitglieder</div>
+        <div class="paket-feature">10 Kurs-Einheiten</div>
+        <div class="paket-feature">12 Monate gültig</div>
+        <div class="paket-feature">Alle Kurstypen</div>
+        <div style="margin-top:16px"><button class="btn btn-outline btn-sm" onclick="notify('Paket-Details geöffnet')">Details</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Paket-Übersicht</div></div>
+      <div class="chart-bar-wrap" id="paket-chart"></div>
+      <div style="display:flex;justify-content:space-around;margin-top:8px;font-size:11px;color:var(--muted)">
+        <span>Jan</span><span>Feb</span><span>Mär</span><span>Apr</span><span>Mai</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Okt</span><span>Nov</span><span>Dez</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTOMATIONEN -->
+  <div class="page" id="page-automationen">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div><div class="section-title">E-Mail Automationen</div><div class="section-sub">8 aktive Automationen · 2.340 E-Mails diesen Monat</div></div>
+      <button class="btn btn-sage" onclick="notify('Neue Automation erstellt ✓')">+ Automation erstellen</button>
+    </div>
+    <div id="automation-list">
+      <div class="automation-item">
+        <div class="auto-icon" style="background:#e8f4e9">🎉</div>
+        <div class="auto-info"><div class="auto-name">Willkommens-E-Mail</div><div class="auto-desc">Wird automatisch gesendet wenn ein neues Mitglied sich registriert</div></div>
+        <div class="auto-stats"><strong>248</strong>gesendet</div>
+        <div class="toggle" onclick="toggleAuto(this)"></div>
+      </div>
+      <div class="automation-item">
+        <div class="auto-icon" style="background:#fff3e0">⏰</div>
+        <div class="auto-info"><div class="auto-name">Kurs-Erinnerung (24h vorher)</div><div class="auto-desc">Erinnert Mitglieder 24 Stunden vor ihrem gebuchten Kurs</div></div>
+        <div class="auto-stats"><strong>1.240</strong>gesendet</div>
+        <div class="toggle" onclick="toggleAuto(this)"></div>
+      </div>
+      <div class="automation-item">
+        <div class="auto-icon" style="background:#fdecea">📦</div>
+        <div class="auto-info"><div class="auto-name">Paket läuft ab (7 Tage vorher)</div><div class="auto-desc">Hinweis wenn Mitgliedschaft oder 10er-Karte in 7 Tagen ausläuft</div></div>
+        <div class="auto-stats"><strong>87</strong>gesendet</div>
+        <div class="toggle" onclick="toggleAuto(this)"></div>
+      </div>
+      <div class="automation-item">
+        <div class="auto-icon" style="background:#f3e5f5">🎂</div>
+        <div class="auto-info"><div class="auto-name">Geburtstags-E-Mail</div><div class="auto-desc">Persönliche Geburtstagsnachricht mit 10% Rabatt-Gutschein</div></div>
+        <div class="auto-stats"><strong>34</strong>gesendet</div>
+        <div class="toggle" onclick="toggleAuto(this)"></div>
+      </div>
+      <div class="automation-item">
+        <div class="auto-icon" style="background:#e3f2fd">💤</div>
+        <div class="auto-info"><div class="auto-name">Inaktivitäts-Reaktivierung</div><div class="auto-desc">Mitglieder die seit 30 Tagen keinen Kurs besucht haben werden angeschrieben</div></div>
+        <div class="auto-stats"><strong>156</strong>gesendet</div>
+        <div class="toggle" onclick="toggleAuto(this)"></div>
+      </div>
+      <div class="automation-item">
+        <div class="auto-icon" style="background:#e8f4e9">⭐</div>
+        <div class="auto-info"><div class="auto-name">Feedback nach Kurs</div><div class="auto-desc">Automatische Bewertungsanfrage 2 Stunden nach Kursende</div></div>
+        <div class="auto-stats"><strong>420</strong>gesendet</div>
+        <div class="toggle" onclick="toggleAuto(this)"></div>
+      </div>
+      <div class="automation-item">
+        <div class="auto-icon" style="background:#fff8e1">🆕</div>
+        <div class="auto-info"><div class="auto-name">Probe-Klasse Nachfolge</div><div class="auto-desc">3 Tage nach der Probe-Klasse: Angebot für Mitgliedschaft mit Sonderkonditionen</div></div>
+        <div class="auto-stats"><strong>68</strong>gesendet</div>
+        <div class="toggle" onclick="toggleAuto(this)"></div>
+      </div>
+      <div class="automation-item">
+        <div class="auto-icon" style="background:#fce4ec">🏆</div>
+        <div class="auto-info"><div class="auto-name">Meilenstein-Belohnung</div><div class="auto-desc">Bei 10, 25, 50 und 100 besuchten Kursen wird automatisch gratuliert</div></div>
+        <div class="auto-stats"><strong>87</strong>gesendet</div>
+        <div class="toggle" onclick="toggleAuto(this)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UMSATZ -->
+  <div class="page" id="page-umsatz">
+    <div class="section-title">Umsatz & Berichte</div>
+    <div class="section-sub">Finanzieller Überblick · 2026</div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">Umsatz Mai</div><div class="kpi-value">8.640 €</div><div class="kpi-sub"><span class="kpi-trend up">↑ +8%</span> vs. April</div></div>
+      <div class="kpi gold"><div class="kpi-label">Jahresumsatz 2026</div><div class="kpi-value">38.420 €</div><div class="kpi-sub">Prognose: 92.000 €</div></div>
+      <div class="kpi sky"><div class="kpi-label">Ø Umsatz/Mitglied</div><div class="kpi-value">34,84 €</div><div class="kpi-sub"><span class="kpi-trend up">↑ +2,10 €</span> vs. Vormonat</div></div>
+      <div class="kpi rose"><div class="kpi-label">Offene Zahlungen</div><div class="kpi-value">3</div><div class="kpi-sub">Gesamt: 267 €</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Monatsumsatz 2026</div></div>
+        <div class="chart-bar-wrap" id="revenue-chart"></div>
+        <div style="display:flex;justify-content:space-around;margin-top:8px;font-size:11px;color:var(--muted)">
+          <span>Jan</span><span>Feb</span><span>Mär</span><span>Apr</span><span>Mai</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Okt</span><span>Nov</span><span>Dez</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Umsatz nach Paket</div></div>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>Premium (124 Mitgl.)</span><strong>11.036 €</strong></div>
+            <div style="height:8px;background:var(--border);border-radius:4px"><div style="height:100%;width:70%;background:var(--sage);border-radius:4px"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>Basis (87 Mitgl.)</span><strong>4.263 €</strong></div>
+            <div style="height:8px;background:var(--border);border-radius:4px"><div style="height:100%;width:40%;background:var(--sky);border-radius:4px"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>10er-Karte (37 Mitgl.)</span><strong>4.440 €</strong></div>
+            <div style="height:8px;background:var(--border);border-radius:4px"><div style="height:100%;width:28%;background:var(--gold);border-radius:4px"></div></div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <table class="tbl">
+          <thead><tr><th>Monat</th><th>Einnahmen</th><th>Neue Mitgl.</th><th>Kündigungen</th></tr></thead>
+          <tbody>
+            <tr><td>Mai 2026</td><td><strong>8.640 €</strong></td><td>+12</td><td>3</td></tr>
+            <tr><td>Apr 2026</td><td>8.000 €</td><td>+8</td><td>5</td></tr>
+            <tr><td>Mär 2026</td><td>7.840 €</td><td>+15</td><td>2</td></tr>
+            <tr><td>Feb 2026</td><td>7.320 €</td><td>+6</td><td>4</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL: Neues Mitglied -->
+<div class="modal-overlay" id="modal-neues-mitglied">
+  <div class="modal">
+    <div class="modal-title">🧘 Neues Mitglied</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field"><label>Vorname</label><input placeholder="Anna"></div>
+      <div class="field"><label>Nachname</label><input placeholder="Müller"></div>
+    </div>
+    <div class="field"><label>E-Mail</label><input placeholder="anna@email.de"></div>
+    <div class="field"><label>Telefon</label><input placeholder="+49 170 …"></div>
+    <div class="field"><label>Mitgliedschaft</label>
+      <select><option>Basis – 49 €/Monat</option><option>Premium – 89 €/Monat</option><option>10er-Karte – 120 €</option></select>
+    </div>
+    <div class="field"><label>Quelle</label>
+      <select><option>Online (Website)</option><option>Empfehlung</option><option>Instagram</option><option>Probe-Klasse</option><option>Walk-In</option></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-neues-mitglied')">Abbrechen</button>
+      <button class="btn btn-sage" onclick="closeModal('modal-neues-mitglied');notify('Mitglied hinzugefügt – Willkommens-E-Mail wurde automatisch gesendet ✉️')">Speichern & E-Mail senden</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notif"></div>
+
+<script>
+// DATA
+const MEMBERS = [
+  {name:'Sarah Kellner',email:'s.kellner@gmail.com',paket:'Premium',buchungen:42,letzte:'heute',status:'aktiv',farbe:'#7a9e7e'},
+  {name:'Michael Braun',email:'m.braun@web.de',paket:'Basis',buchungen:8,letzte:'vor 2 Tagen',status:'aktiv',farbe:'#7e9fc9'},
+  {name:'Anna Klein',email:'anna.klein@mail.de',paket:'10er-Karte',buchungen:9,letzte:'gestern',status:'läuft ab',farbe:'#c9a96e'},
+  {name:'Lisa Vogel',email:'l.vogel@gmail.com',paket:'Premium',buchungen:67,letzte:'heute',status:'aktiv',farbe:'#c97e7e'},
+  {name:'Tom Fischer',email:'t.fischer@t-online.de',paket:'Basis',buchungen:3,letzte:'vor 5 Tagen',status:'inaktiv',farbe:'#8a8a82'},
+  {name:'Julia Schneider',email:'julia.s@outlook.de',paket:'Premium',buchungen:28,letzte:'vor 3 Tagen',status:'aktiv',farbe:'#7a9e7e'},
+  {name:'Peter Wolf',email:'p.wolf@gmail.com',paket:'Basis',buchungen:11,letzte:'vorgestern',status:'läuft ab',farbe:'#c9a96e'},
+  {name:'Lena Braun',email:'lena.b@gmail.com',paket:'Premium',buchungen:2,letzte:'heute',status:'neu',farbe:'#7e9fc9'},
+  {name:'Tobias Weber',email:'t.weber@web.de',paket:'Basis',buchungen:1,letzte:'gestern',status:'neu',farbe:'#c9a96e'},
+  {name:'Maria Hoffmann',email:'m.hoff@mail.de',paket:'10er-Karte',buchungen:6,letzte:'heute',status:'aktiv',farbe:'#c97e7e'},
+];
+
+const STATUS_BADGE = {
+  'aktiv':'badge-green','neu':'badge-blue','läuft ab':'badge-orange','inaktiv':'badge-gray'
+};
+
+function renderMembers() {
+  const tbody = document.getElementById('member-list');
+  tbody.innerHTML = MEMBERS.map(m => `
+    <tr style="cursor:pointer" onclick="notify('${m.name} · ${m.paket} · ${m.buchungen} Kurse besucht')">
+      <td style="padding-left:20px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="member-avatar" style="background:${m.farbe}">${m.name.split(' ').map(n=>n[0]).join('')}</div>
+          <div><div style="font-weight:500;font-size:13px">${m.name}</div><div style="font-size:11px;color:var(--muted)">${m.email}</div></div>
+        </div>
+      </td>
+      <td><span class="badge ${m.paket==='Premium'?'badge-purple':m.paket==='Basis'?'badge-blue':'badge-gray'}">${m.paket}</span></td>
+      <td style="font-weight:500">${m.buchungen}</td>
+      <td style="color:var(--muted);font-size:12px">${m.letzte}</td>
+      <td><span class="badge ${STATUS_BADGE[m.status]}">${m.status}</span></td>
+      <td style="padding-right:20px"><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();notify('${m.name} – Profil geöffnet')">Profil</button></td>
+    </tr>
+  `).join('');
+}
+
+// CHARTS
+function renderRevenueChart() {
+  const data = [6200,6800,7200,7840,8000,8640,0,0,0,0,0,0];
+  const max = 10000;
+  const el = document.getElementById('revenue-chart');
+  if(!el) return;
+  el.innerHTML = data.map((v,i) => `
+    <div class="chart-bar-col">
+      ${v>0?`<div class="chart-val">${(v/1000).toFixed(1)}k</div>`:'<div class="chart-val" style="opacity:0">0</div>'}
+      <div class="chart-bar ${i===4?'gold':''}" style="height:${v?(v/max*110):4}px" title="${v?v+'€':'geplant'}"></div>
+    </div>
+  `).join('');
+}
+
+function renderPaketChart() {
+  const data = [82,87,90,95,98,102,0,0,0,0,0,0];
+  const max = 130;
+  const el = document.getElementById('paket-chart');
+  if(!el) return;
+  el.innerHTML = data.map((v,i) => `
+    <div class="chart-bar-col">
+      ${v>0?`<div class="chart-val">${v}</div>`:'<div class="chart-val" style="opacity:0">0</div>'}
+      <div class="chart-bar sky" style="height:${v?(v/max*110):4}px"></div>
+    </div>
+  `).join('');
+}
+
+// NAV
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const titles = {
+    dashboard:'Dashboard',stundenplan:'Stundenplan',kurse:'Kurse & Klassen',
+    mitglieder:'Mitglieder',pakete:'Mitgliedschaften',automationen:'E-Mail Automationen',umsatz:'Umsatz & Berichte'
+  };
+  document.getElementById('page-title').textContent = titles[id]||id;
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if(n.textContent.toLowerCase().includes(id.slice(0,5).toLowerCase()) ||
+       (id==='dashboard'&&n.textContent.includes('Dashboard')) ||
+       (id==='stundenplan'&&n.textContent.includes('Stundenplan')) ||
+       (id==='kurse'&&n.textContent.includes('Kurse')) ||
+       (id==='mitglieder'&&n.textContent.includes('Mitglieder')) ||
+       (id==='pakete'&&n.textContent.includes('Mitglied')) ||
+       (id==='automationen'&&n.textContent.includes('E-Mail')) ||
+       (id==='umsatz'&&n.textContent.includes('Umsatz'))) {
+      n.classList.add('active');
+    }
+  });
+  if(id==='umsatz') setTimeout(renderRevenueChart, 100);
+  if(id==='pakete') setTimeout(renderPaketChart, 100);
+}
+
+// MODAL
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
+
+// NOTIFY
+function notify(msg) {
+  const el = document.getElementById('notif');
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(window._nt);
+  window._nt = setTimeout(()=>{ el.style.display='none'; }, 3000);
+}
+
+// TOGGLE
+function toggleAuto(el) {
+  el.classList.toggle('off');
+  notify(el.classList.contains('off') ? 'Automation deaktiviert' : 'Automation aktiviert ✓');
+}
+
+// INIT
+renderMembers();
+setTimeout(renderRevenueChart, 300);
+</script>
+</body>
+</html>
